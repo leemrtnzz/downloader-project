@@ -16,8 +16,6 @@ async function shareContent(title: string, url: string | undefined) {
   if (isShareSupported.value) {
     try {
       await navigator.share({
-        title: `Unduh Konten dari ${title}`,
-        text: "Lihat konten yang saya temukan lewat Downloader ini!",
         url: url, // Mengirim link download konten
       });
     } catch (error) {
@@ -83,7 +81,10 @@ const handleDownload = async () => {
     } else if (selectedPlatform.value === "instagram") {
       try {
         const data = await instadown(downloadLink.value);
-        if (data.status) {
+        if (Array.isArray(data) && data.length > 0 && data[0].status) {
+          isInstagramDialogVisible.value = true;
+          instagramDownloadData.value = data[0];
+        } else if (data.status) {
           isInstagramDialogVisible.value = true;
           instagramDownloadData.value = data;
         } else {
@@ -316,6 +317,20 @@ const handleDownload = async () => {
               severity="info"
             />
           </a>
+          <!-- TOMBOL SHARE: Akan share di HP, atau copy link di PC/HTTP -->
+          <Button
+            label="Bagikan Tautan"
+            icon="pi pi-share-alt"
+            class="w-full py-3 mt-2"
+            severity="help"
+            outlined
+            @click="
+              shareContent(
+                'Facebook Video',
+                facebookDownloadData.HD || facebookDownloadData.Normal_video,
+              )
+            "
+          />
         </div>
       </Dialog>
 
@@ -444,7 +459,7 @@ const handleDownload = async () => {
           </div>
           <div class="text-center mb-2">
             <h3 class="text-lg font-semibold">
-              {{ instagramDownloadData.creator || "Instagram Content" }}
+              {{ "Instagram Content" }}
             </h3>
           </div>
           <a
