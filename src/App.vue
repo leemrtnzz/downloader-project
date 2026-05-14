@@ -353,7 +353,7 @@ const handleDownload = async () => {
           </div>
           <div class="text-center mb-2">
             <h3 class="text-lg font-semibold">
-              {{ downloadLink.match(/@[\w.-]+/)! }}
+              {{ downloadLink.match(/@[\w.-]+/)?.[0] }}
             </h3>
             <p
               class="text-sm text-slate-400 line-clamp-2 mt-1"
@@ -400,7 +400,12 @@ const handleDownload = async () => {
             class="w-full py-3 mt-2"
             severity="help"
             outlined
-            @click="shareContent(tiktokDownloadData.creator || 'TikTok', tiktokDownloadData.video?.[0] || tiktokDownloadData.audio?.[0])"
+            @click="
+              shareContent(
+                tiktokDownloadData.creator || 'TikTok',
+                tiktokDownloadData.video?.[0] || tiktokDownloadData.audio?.[0],
+              )
+            "
           />
         </div>
       </Dialog>
@@ -462,7 +467,12 @@ const handleDownload = async () => {
             class="w-full py-3 mt-2"
             severity="help"
             outlined
-            @click="shareContent(instagramDownloadData.creator || 'Instagram', instagramDownloadData.url)"
+            @click="
+              shareContent(
+                instagramDownloadData.creator || 'Instagram',
+                instagramDownloadData.url,
+              )
+            "
           />
         </div>
       </Dialog>
@@ -530,7 +540,12 @@ const handleDownload = async () => {
             class="w-full py-3 mt-2"
             severity="help"
             outlined
-            @click="shareContent(capcutDownloadData.authorName || 'Capcut', capcutDownloadData.originalVideoUrl)"
+            @click="
+              shareContent(
+                capcutDownloadData.authorName || 'Capcut',
+                capcutDownloadData.originalVideoUrl,
+              )
+            "
           />
         </div>
       </Dialog>
