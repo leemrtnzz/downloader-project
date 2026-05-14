@@ -52,6 +52,9 @@ const instagramDownloadData = ref<Partial<Instagram>>({});
 const isCapcutDialogVisible = ref(false);
 const capcutDownloadData = ref<Partial<Capcut>>({});
 
+const isErrorDialogVisible = ref(false);
+const errorMessage = ref("");
+
 const platforms = [
   { label: "TikTok", value: "tiktok" },
   { label: "Instagram", value: "instagram" },
@@ -61,6 +64,32 @@ const platforms = [
 
 const handleDownload = async () => {
   if (downloadLink.value && selectedPlatform.value) {
+    const url = downloadLink.value;
+    let isValid = false;
+
+    switch (selectedPlatform.value) {
+      case "tiktok":
+        isValid = url.includes("tiktok.com");
+        break;
+      case "instagram":
+        isValid = url.includes("instagram.com");
+        break;
+      case "facebook":
+        isValid = url.includes("facebook.com") || url.includes("fb.watch");
+        break;
+      case "capcut":
+        isValid = url.includes("capcut.com");
+        break;
+      default:
+        isValid = true;
+    }
+
+    if (!isValid) {
+      errorMessage.value = `Link yang dimasukkan tidak valid untuk platform ${selectedPlatform.value.toUpperCase()}. Pastikan link sesuai dengan platform yang dipilih.`;
+      isErrorDialogVisible.value = true;
+      return;
+    }
+
     isLoading.value = true;
     console.log(
       `Downloading from ${selectedPlatform.value}: ${downloadLink.value}`,
@@ -267,6 +296,40 @@ const handleDownload = async () => {
       <div class="mt-12 text-center text-slate-400 text-sm">
         <p>Made with ❤️ by Ichsan Haekal</p>
       </div>
+
+      <!-- Error Validation Dialog -->
+      <Dialog
+        v-model:visible="isErrorDialogVisible"
+        modal
+        header="Platform Tidak Sesuai"
+        :style="{ width: '25rem' }"
+        :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+        :pt="{
+          root: {
+            class: 'bg-slate-800 border border-slate-700 rounded-xl shadow-2xl',
+          },
+          header: {
+            class:
+              'bg-slate-800 border-b border-slate-700 text-amber-500 font-bold rounded-t-xl pb-4',
+          },
+          content: { class: 'bg-slate-800 text-white p-6 rounded-b-xl' },
+          closeButton: {
+            class: 'text-slate-300 hover:text-white hover:bg-slate-700',
+          },
+        }"
+      >
+        <div class="flex flex-col gap-4 mt-2 items-center text-center">
+          <i class="pi pi-exclamation-triangle text-amber-500 text-5xl"></i>
+          <p class="text-slate-200">{{ errorMessage }}</p>
+          <Button
+            label="Mengerti"
+            severity="secondary"
+            outlined
+            class="w-full mt-2"
+            @click="isErrorDialogVisible = false"
+          />
+        </div>
+      </Dialog>
 
       <!-- Facebook Download Dialog -->
       <Dialog
