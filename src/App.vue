@@ -1,175 +1,31 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { facedown, ttdown, instadown, ccdl } from "./utils";
-import type { Tiktok, Instagram, Capcut } from "./utils/intefaces";
-import { computed } from "vue";
+import useAppLogic from "./logic_app";
 
-// Cek apakah browser mendukung Web Share API (Mayoritas Android & iOS mendukung ini)
-const isShareSupported = computed(() => {
-  return typeof navigator !== "undefined" && !!navigator.share;
-});
-
-// Fungsi untuk mengeksekusi menu share bawaan HP atau fallback ke copy link
-async function shareContent(title: string, url: string | undefined) {
-  if (!url) return;
-
-  if (isShareSupported.value) {
-    try {
-      await navigator.share({
-        url: url, // Mengirim link download konten
-      });
-    } catch (error) {
-      // Menghindari log error jika pengguna membatalkan/menutup menu share
-      if ((error as Error).name !== "AbortError") {
-        console.error("Gagal membagikan tautan:", error);
-      }
-    }
-  } else {
-    // Fallback untuk browser PC/HTTP biasa (Salin teks ke clipboard)
-    try {
-      await navigator.clipboard.writeText(url);
-      alert("Tautan unduhan berhasil disalin ke clipboard!");
-    } catch (err) {
-      console.error("Gagal menyalin ke clipboard:", err);
-      alert("Gagal menyalin tautan.");
-    }
-  }
-}
-
-const downloadLink = ref("");
-const selectedPlatform = ref("");
-const isLoading = ref(false);
-
-const pasteFromClipboard = async () => {
-  try {
-    const text = await navigator.clipboard.readText();
-    downloadLink.value = text;
-  } catch (err) {
-    console.error("Failed to read clipboard contents: ", err);
-    alert("Gagal mengakses clipboard. Pastikan browser memberikan izin.");
-  }
-};
-
-const isFacebookDialogVisible = ref(false);
-const facebookDownloadData = ref<{ Normal_video?: string; HD?: string }>({});
-
-const isTiktokDialogVisible = ref(false);
-const tiktokDownloadData = ref<Partial<Tiktok>>({});
-
-const isInstagramDialogVisible = ref(false);
-const instagramDownloadData = ref<Partial<Instagram>>({});
-
-const isCapcutDialogVisible = ref(false);
-const capcutDownloadData = ref<Partial<Capcut>>({});
-
-const isErrorDialogVisible = ref(false);
-const errorMessage = ref("");
-
-const platforms = [
-  { label: "TikTok", value: "tiktok" },
-  { label: "Instagram", value: "instagram" },
-  { label: "Facebook", value: "facebook" },
-  { label: "Capcut", value: "capcut" },
-];
-
-const handleDownload = async () => {
-  if (downloadLink.value && selectedPlatform.value) {
-    const url = downloadLink.value;
-    let isValid = false;
-
-    switch (selectedPlatform.value) {
-      case "tiktok":
-        isValid = url.includes("tiktok.com");
-        break;
-      case "instagram":
-        isValid = url.includes("instagram.com");
-        break;
-      case "facebook":
-        isValid = url.includes("facebook.com") || url.includes("fb.watch");
-        break;
-      case "capcut":
-        isValid = url.includes("capcut.com");
-        break;
-      default:
-        isValid = true;
-    }
-
-    if (!isValid) {
-      errorMessage.value = `Link yang dimasukkan tidak valid untuk platform ${selectedPlatform.value.toUpperCase()}. Pastikan link sesuai dengan platform yang dipilih.`;
-      isErrorDialogVisible.value = true;
-      return;
-    }
-
-    isLoading.value = true;
-    console.log(
-      `Downloading from ${selectedPlatform.value}: ${downloadLink.value}`,
-    );
-    if (selectedPlatform.value === "tiktok") {
-      try {
-        const data = await ttdown(downloadLink.value);
-        if (data.status) {
-          isTiktokDialogVisible.value = true;
-          tiktokDownloadData.value = data;
-        } else {
-          isTiktokDialogVisible.value = false;
-          tiktokDownloadData.value = {};
-        }
-      } catch (error) {
-        console.error("Error fetching TikTok download:", error);
-      }
-    } else if (selectedPlatform.value === "instagram") {
-      try {
-        const data = await instadown(downloadLink.value);
-        if (Array.isArray(data) && data.length > 0 && data[0].status) {
-          isInstagramDialogVisible.value = true;
-          instagramDownloadData.value = data[0];
-        } else if (data.status) {
-          isInstagramDialogVisible.value = true;
-          instagramDownloadData.value = data;
-        } else {
-          isInstagramDialogVisible.value = false;
-          instagramDownloadData.value = {};
-        }
-      } catch (error) {
-        console.error("Error fetching Instagram download:", error);
-      }
-    } else if (selectedPlatform.value === "facebook") {
-      try {
-        const data = await facedown(downloadLink.value);
-        if (data.status) {
-          isFacebookDialogVisible.value = true;
-          facebookDownloadData.value = data;
-        } else {
-          isFacebookDialogVisible.value = false;
-          facebookDownloadData.value = {};
-        }
-      } catch (error) {
-        console.error("Error fetching Facebook download:", error);
-      }
-    } else if (selectedPlatform.value === "youtube") {
-      console.log("Initiating YouTube download...");
-    } else if (selectedPlatform.value === "capcut") {
-      try {
-        const data = await ccdl(downloadLink.value);
-        if (data.status) {
-          isCapcutDialogVisible.value = true;
-          capcutDownloadData.value = data;
-        } else {
-          isCapcutDialogVisible.value = false;
-          capcutDownloadData.value = {};
-        }
-      } catch (error) {
-        console.error("Error fetching Capcut download:", error);
-      }
-    }
-    setTimeout(() => {
-      isLoading.value = false;
-    }, 2000);
-  }
-};
+// Lakukan destructuring untuk mengambil semua variabel dan fungsinya yang dibutuhkan template
+const {
+  downloadLink,
+  selectedPlatform,
+  isLoading,
+  isFacebookDialogVisible,
+  facebookDownloadData,
+  isTiktokDialogVisible,
+  tiktokDownloadData,
+  isInstagramDialogVisible,
+  instagramDownloadData,
+  isCapcutDialogVisible,
+  capcutDownloadData,
+  isErrorDialogVisible,
+  errorMessage,
+  platforms,
+  shareContent,
+  pasteFromClipboard,
+  handleDownload,
+} = useAppLogic();
 </script>
+>
 
 <template>
+  <Toast />
   <div
     class="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900"
   >
@@ -205,7 +61,27 @@ const handleDownload = async () => {
       <Card class="mb-8 bg-slate-800 border border-slate-700">
         <template #title>
           <div class="flex items-center gap-2">
-            <i class="pi pi-info-circle text-blue-400"></i>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1.2em"
+              height="1.2em"
+              viewBox="0 0 24 24"
+            >
+              <path d="M0 0h24v24H0z" fill="none" />
+              <g
+                fill="none"
+                stroke="#23bef5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+              >
+                <rect width="6.5" height="6.5" x="3.75" y="3.75" rx="2" />
+                <path d="M17 3.75V7m0 0v3.25M17 7h-3.25M17 7h3.25" />
+                <rect width="6.5" height="6.5" x="3.75" y="13.75" rx="2" />
+                <rect width="6.5" height="6.5" x="13.75" y="13.75" rx="2" />
+              </g>
+            </svg>
+
             <span class="text-white">Tentang Aplikasi</span>
           </div>
         </template>
@@ -222,7 +98,19 @@ const handleDownload = async () => {
       <Card class="bg-slate-800 border border-slate-700">
         <template #title>
           <div class="flex items-center gap-2">
-            <i class="pi pi-cog text-purple-400"></i>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1.2em"
+              height="1.2em"
+              viewBox="0 0 24 24"
+            >
+              <path d="M0 0h24v24H0z" fill="none" />
+              <path
+                fill="#23f581"
+                d="M11 6v8l-3.5-3.5l-1.42 1.42L12 17.84l5.92-5.92l-1.42-1.42L13 14V6zm1 16A10 10 0 0 1 2 12A10 10 0 0 1 12 2a10 10 0 0 1 10 10a10 10 0 0 1-10 10"
+              />
+            </svg>
+
             <span class="text-white">Mulai Mengunduh</span>
           </div>
         </template>
@@ -314,7 +202,43 @@ const handleDownload = async () => {
 
       <!-- Footer Info -->
       <div class="mt-12 text-center text-slate-400 text-sm">
-        <p>Made with ❤️ by Ichsan Haekal</p>
+        <p class="flex items-center justify-center gap-2">
+          Made with
+          <span class="-mr-1"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1.2em"
+              height="1.2em"
+              viewBox="0 0 48 48"
+            >
+              <path d="M0 0h48v48H0z" fill="none" />
+              <g fill="none" stroke="#f52323" stroke-width="4">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M14.54 20.019q-2.532-3.113-4.754-1.337C7.563 20.458 6.925 26.65 8.713 32.11s5.267 12.893 12.289 12.893S29.684 37.522 32.548 33c2.865-4.522 4.38-8.885 1.573-14.318"
+                />
+                <path
+                  stroke-linecap="round"
+                  d="M11 18.037A643 643 0 0 0 7 12c-1.446-2.145 2.251-4.918 4-3.032q1.749 1.887 4.647 5.557"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15.024 25.64q-.727-9.096 1.182-11.845c1.91-2.75 5.457-3.792 8.798-3.792q2.983 0 5.448 2.541"
+                />
+                <path
+                  d="M41 12.613c.586 2.036-.37 3.897-3.316 4.318s-5.153 1.902-6.745 3.148s-4.44 5.026-5.003 6.923s-3.776.153-4.639-.605c-.863-.757-1.712-2.416 0-4.151s1.341-2.081 1.341-3.84c0-1.76 9.362-7.58 14.635-8.112c1.172-.068 3.142.282 3.727 2.319Z"
+                  clip-rule="evenodd"
+                />
+                <path
+                  stroke-linecap="round"
+                  d="M23.008 4v5.263m-2.701 1.455q-4.527-5.69-7.3-6.35m3.997 2.661l.99-4.067m17.619 7.756q-.483 1.656 0 3.106q.484 1.45 2.071 3.107"
+                />
+              </g>
+            </svg> </span
+          >by Ichsan Haekal
+        </p>
       </div>
 
       <!-- Error Validation Dialog -->
