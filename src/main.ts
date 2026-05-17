@@ -10,7 +10,7 @@ import Message from "primevue/message";
 import Panel from "primevue/panel";
 import Divider from "primevue/divider";
 import Dialog from "primevue/dialog";
-import AnimateOnScroll from 'primevue/animateonscroll';
+import AnimateOnScroll from "primevue/animateonscroll";
 import "./assets/css/main.css";
 const app = createApp(App);
 app.component("Button", Button);
@@ -20,11 +20,15 @@ app.component("Message", Message);
 app.component("Panel", Panel);
 app.component("Divider", Divider);
 app.component("Dialog", Dialog);
-app.directive('animateonscroll', AnimateOnScroll);
+app.directive("animateonscroll", AnimateOnScroll);
 // app.use(router)
 app.use(PrimeVue, {
   theme: {
     preset: Aura,
+    options: {
+      darkModeSelector: ".p-dark",
+      cssLayer: false,
+    },
   },
 });
 

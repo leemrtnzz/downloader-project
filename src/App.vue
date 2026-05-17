@@ -40,6 +40,16 @@ const downloadLink = ref("");
 const selectedPlatform = ref("");
 const isLoading = ref(false);
 
+const pasteFromClipboard = async () => {
+  try {
+    const text = await navigator.clipboard.readText();
+    downloadLink.value = text;
+  } catch (err) {
+    console.error("Failed to read clipboard contents: ", err);
+    alert("Gagal mengakses clipboard. Pastikan browser memberikan izin.");
+  }
+};
+
 const isFacebookDialogVisible = ref(false);
 const facebookDownloadData = ref<{ Normal_video?: string; HD?: string }>({});
 
@@ -167,7 +177,7 @@ const handleDownload = async () => {
     <header
       class="border-b border-slate-700 bg-slate-800/50 backdrop-blur-sm sticky top-0 z-50"
     >
-      <div class="max-w-5xl flex items-center justify-center px-6 py-6">
+      <div class="max-w-5xl mx-auto flex items-center justify-center px-6 py-6">
         <div class="flex items-center gap-3">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -240,40 +250,50 @@ const handleDownload = async () => {
             <Divider />
 
             <!-- Link Input -->
-            <div>
-              <label
-                for="downloadLink"
-                class="block text-sm font-semibold text-slate-300 mb-3"
-                >Masukkan Link</label
-              >
+            <div class="w-full flex flex-row items-center gap-2">
+              <!-- Kolom Input (Tetap Gelap Elegan) -->
               <InputText
                 id="downloadLink"
                 v-model="downloadLink"
                 placeholder="Paste link konten di sini..."
-                class="w-full"
+                class="flex-1 pl-4 py-3.5 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
                 :disabled="!selectedPlatform"
               />
-              <Message
-                v-if="selectedPlatform"
-                severity="info"
-                :closable="false"
-                class="mt-3 bg-blue-900/30 border border-blue-700"
+
+              <!-- Tombol Paste dengan Background Terang Solid -->
+              <button
+                class="bg-blue-500 p-2.5 rounded-md transition-colors duration-300 hover:bg-blue-600 disabled:bg-slate-700 disabled:hover:bg-slate-700"
+                @click="pasteFromClipboard"
+                :disabled="!selectedPlatform"
               >
-                <div class="text-sm text-blue-200">
-                  Siap mengunduh dari
-                  <strong>{{ selectedPlatform.toUpperCase() }}</strong>
-                </div>
-              </Message>
-              <Message
-                v-else
-                severity="warn"
-                :closable="false"
-                class="mt-3 bg-amber-900/30 border border-amber-700"
-              >
-                <div class="text-sm text-amber-200">
-                  Silakan pilih platform terlebih dahulu
-                </div>
-              </Message>
+                <svg
+                  xmlns="http://w3.org"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="w-5 h-5 transition-transform duration-300 group-hover:scale-110 group-enabled:text-slate-900 group-disabled:text-slate-500"
+                >
+                  <path
+                    d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                  />
+                  <rect
+                    x="8"
+                    y="2"
+                    width="8"
+                    height="4"
+                    rx="1"
+                    ry="1"
+                    fill="currentColor"
+                    class="fill-slate-900/10 group-disabled:fill-transparent"
+                  />
+                  <path d="M9 10h6" />
+                  <path d="M9 14h6" />
+                  <path d="M9 18h4" />
+                </svg>
+              </button>
             </div>
 
             <Divider />
