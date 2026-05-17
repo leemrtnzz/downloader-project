@@ -56,7 +56,10 @@ export default function useAppLogic() {
   const pasteFromClipboard = async () => {
     try {
       const text = await navigator.clipboard.readText();
-      downloadLink.value = text;
+      // Ekstrak URL jika ada teks lain di sekitarnya
+      const urlRegex = /(https?:\/\/[^\s]+)/;
+      const match = text.match(urlRegex);
+      downloadLink.value = match ? match[0] : text.trim();
     } catch (err) {
       console.error("Failed to read clipboard contents: ", err);
       toast.add({
@@ -92,7 +95,14 @@ export default function useAppLogic() {
 
   const handleDownload = async () => {
     if (downloadLink.value && selectedPlatform.value) {
-      const url = downloadLink.value;
+      // Ekstrak URL jika pengguna paste teks yang mengandung karakter tak perlu
+      const urlRegex = /(https?:\/\/[^\s]+)/;
+      const match = downloadLink.value.match(urlRegex);
+      const url = match ? match[0] : downloadLink.value.trim();
+
+      // Update kotak input dengan link yang sudah bersih
+      downloadLink.value = url;
+
       let isValid = false;
 
       switch (selectedPlatform.value) {
